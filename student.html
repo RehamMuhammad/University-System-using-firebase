@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student</title>
+    <link rel="stylesheet" href="./assets/bootstrap/css/bootstrap.css" />
+    <link rel="stylesheet" href="./assets/css/style.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+
+<body onload="faculitiesOptions()">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand h1 mt-2 p-1" href="./index.html">Faculties</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01"
+                aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarColor01">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active h5 mt-2 p-1" href="./student.html">Students</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active h5 mt-2 p-1  ms-4" href="./courses.html">Courses</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="inputs container">
+        <div class="row">
+            <div class="col-12">
+
+                <input type="text" class="form-control mt-5" id="StdId" placeholder="Student ID" readonly>
+
+                <input type="text" class="form-control mt-5" id="stdFirstName"
+                    placeholder="Please Enter your First Name">
+                <input type="text" class="form-control mt-3" id="stdLastName" placeholder="Please Enter your Last Name">
+                <input type="number" class="form-control mt-3" id="stdAge" placeholder="Please Enter your age">
+
+                <div class="form-group">
+                    <label for="exampleSelect1" class="form-label mt-3">Please choose your Faculty name</label>
+                    <select class="form-select" id="exampleSelect1">
+                    </select>
+                </div>
+                <button type="button" onclick="saveStudent()" class="btn btn-success mt-3">Add Student</button>
+
+            </div>
+        </div>
+    </div>
+
+
+    <table class="table table-hover container" id="allStds">
+        <div class="row">>
+            <div class="col-12">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Student First Name </th>
+                        <th scope="col">Student last Name</th>
+                        <th scope="col">Student Age</th>
+                        <th scope="col">Student Faculty</th>
+                        <th scope="col"></th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </div>
+        </div>
+    </table>
+    <script>
+        //get all Faculties; names in an array to display it in the select input
+
+        function faculitiesOptions() {
+            $.ajax({
+                url: "https://university-system-2017-default-rtdb.firebaseio.com/Faculties.json",
+                method: "GET",
+                dataType: "json",
+                success: function (Fdata) {
+                    let arr = [];
+                    let facIds = [];
+
+                    for (let fac in Fdata) {
+                        arr.push(Fdata[fac].facultyName);
+                        facIds.push(fac);
+
+                    }
+                    for (let i = 0; i < arr.length; i++) {
+                        var facultySelection = $("#exampleSelect1");
+                        var option = `<option id=${facIds[i]}>${arr[i]}</option>`;
+                        facultySelection.append(option);
+                    }
+                },
+                error: function (err) {
+                    alert(err);
+                },
+            });
+        }
+        function clearStd() {
+            $("#stdFirstName").val("");
+            $("#stdLastName").val("");
+            $("#stdAge").val("");
+        }
+
+
+        //Save new added Students to our Students Collection
+        function saveStudent() {
+            var ID = $("#StdId").val()
+            var stdFirstName = $("#stdFirstName").val();
+            var stdLastName = $("#stdLastName").val();
+            var stdAge = $("#stdAge").val();
+            var stdFaculty = $("#exampleSelect1 option:selected").text();
+            console.log($("#exampleSelect1 option:selected").text())
+            var StdData = {
+                stdFirstName: stdFirstName,
+                stdLastName: stdLastName,
+                stdAge: stdAge,
+                facId: $("#exampleSelect1 option:selected").attr("id"),
+                stdFaculty: stdFaculty,
+            };
+            console.log(StdData);
+            var url = "https://university-system-2017-default-rtdb.firebaseio.com/Students.json"
+            var method = "POST"
+
+            if (ID != "") {
+                var url = `https://university-system-2017-default-rtdb.firebaseio.com/Students/${ID}/.json`
+                var method = "PATCH"
+            }
+            $.ajax({
+                url: url,
+                method: method,
+                data: JSON.stringify(StdData),
+                contentType: "application/json; charset=UTF-8",
+                dataType: "json",
+                success: function () {
+                    showStds();
+                },
+                error: function (err) {
+                    alert(err);
+                },
+            });
+            clearStd();
+        }
+
+        //Show all Students in our Students Collection
+
+        function showStds() {
+            $.ajax({
+                url: "https://university-system-2017-default-rtdb.firebaseio.com/Students.json",
+                method: "GET",
+                dataType: "json",
+                success: function (STdData) {
+                    var allStds = $("#allStds>tbody");
+                    allStds.empty();
+                    for (let std in STdData) {
+                        var row = `<tr class="table-danger">
+                        <th scope="row">${std}</th>
+                        <td>${STdData[std].stdFirstName}</td>
+                        <td>${STdData[std].stdLastName}</td>
+                        <td>${STdData[std].stdAge}</td>
+                        <td>${STdData[std].stdFaculty}</td>         
+                        <td><button type="button" onclick="fillStd('${std}')" class="btn btn-warning"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
+  <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/>
+</svg></button>
+<button type="button" onclick="deleteStd('${std}')" class="btn btn-danger"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+  <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+</svg></button>
+</td>
+</tr>`;
+                        allStds.append(row);
+                    }
+                },
+                error: function (err) {
+                    alert(err);
+                },
+
+            });
+        }
+        function clearStd() {
+            $("#StdId").val("");
+            $("#stdFirstName").val("");
+            $("#stdLastName").val("");
+            $("#stdAge").val("");
+        }
+        //Update function to fill inputs with 
+        function fillStd(StdId) {
+            $.ajax({
+                url: `https://university-system-2017-default-rtdb.firebaseio.com/Students/${StdId}/.json`,
+                method: "GET",
+                dataType: "json",
+                success: function (stdData) {
+                    console.log(stdData)
+                    $("#StdId").val(StdId);
+                    $("#stdFirstName").val(stdData.stdFirstName);
+                    $("#stdLastName").val(stdData.stdLastName);
+                    $("#stdAge").val(stdData.stdAge);
+                    $("#exampleSelect1").val(stdData.stdFaculty);
+                },
+                error: function (err) {
+                    alert(err);
+                },
+            })
+        }
+
+    </script>
+    <script src="./assets/bootstrap/js/bootstrap.js"></script>
+    <script type="module" src="./assets/js/db.js"></script>
+
+</body>
+
+</html>

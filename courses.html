@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=
+    , initial-scale=1.0">
+    <title>Courses</title>
+    <link rel="stylesheet" href="./assets/bootstrap/css/bootstrap.css" />
+    <link rel="stylesheet" href="./assets/css/style.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand h1 mt-2 p-1" href="./index.html">Faculties</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01"
+                aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarColor01">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active h5 mt-2 p-1" href="./student.html">Students</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active h5 mt-2 p-1 ms-4" href="./courses.html">Courses</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="inputs container">
+        <div class="row">
+            <div class="col-12">
+
+                <input type="text" class="form-control mt-5" id="CrsId" placeholder="Course ID" readonly>
+
+                <input type="text" class="form-control mt-5" id="name" placeholder="Please Enter the Course Name">
+                <input type="text" class="form-control mt-3" id="mark" placeholder="Please Enter the Course final mark">
+                <input type="number" class="form-control mt-3" id="hours" placeholder="Please Enter the Course hours">
+
+                <div class="form-group">
+                    <label for="exampleSelect1" class="form-label mt-3">Is This Course Available right now?</label>
+                    <select class="form-select" id="exampleSelect1">
+                        <option>available</option>
+                        <option>Not available</option>
+                    </select>
+                </div>
+                <button type="button" onclick="saveCourse()" class="btn btn-success mt-3">Add Course</button>
+            </div>
+        </div>
+    </div>
+
+    <table class="table table-hover container" id="allCourses">
+        <div class="row">>
+            <div class="col-12">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Course Name </th>
+                        <th scope="col">Course Final Mark</th>
+                        <th scope="col">Course Hours</th>
+                        <th scope="col">Avaliable</th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </div>
+        </div>
+    </table>
+    <div class="inputs container">
+        <div class="row">
+            <div class="col-12">
+                <div class="form-group">
+                    <label for="exampleSelect2" class="form-label mt-3">
+                        <h3>Write the Course Name you search for:</h3>
+                    </label>
+                    <input type="text" class="form-control mt-5" id="Cname"
+                        placeholder="Please Enter the Course Name you look for">
+                    <button type="submit" onclick="TestQuery()" class="btn btn-success mt-3">Show Course
+                        Details</button>
+                    <table class="table table-hover container" id="myCourse">
+                        <div class="row">
+                            <div class="col-12">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">ID</th>
+                                        <th scope="col">Course Name </th>
+                                        <th scope="col">Course Final Mark</th>
+                                        <th scope="col">Course Hours</th>
+                                        <th scope="col">Avaliable</th>
+                                        <th scope="col"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </div>
+                        </div>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js";
+        import { getFirestore, collection, query, where, addDoc, getDocs, doc, onSnapshot, getDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.1.2/firebase-firestore.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDnGmo8KSzDFmTcWGrX83dl8TRCqzv9D-E",
+            authDomain: "university-system-2017.firebaseapp.com",
+            databaseURL: "https://university-system-2017-default-rtdb.firebaseio.com",
+            projectId: "university-system-2017",
+            storageBucket: "university-system-2017.appspot.com",
+            messagingSenderId: "62486902525",
+            appId: "1:62486902525:web:a6573bf3c819e42070f094",
+        };
+
+        // Initialize Firestore
+        const app = initializeApp(firebaseConfig);
+        const firestore = getFirestore(app);
+
+        // 
+        // const querySnapshot = await getDocs(collection(firestore, "Courses"));
+        // querySnapshot.forEach((course) => {
+        //     console.log(course.data());
+        // });
+
+        //Get All Courses
+
+
+        onSnapshot(collection(firestore, 'Courses'), (snapshot) => {
+            $("#allCourses>tbody").empty();
+            snapshot.docs.forEach((doc) => {
+                ShowCourse(doc)
+            })
+        });
+
+        window.saveCourse = saveCourse;
+        async function saveCourse() {
+            var ID = $("#CrsId").val()
+            var Name = $('#name').val()
+            var Mark = parseInt($('#mark').val())
+            var Hours = parseInt($('#hours').val())
+            var availability = $("#exampleSelect1 option:selected").text();
+
+            var courseData = {
+                Name, Mark, Hours, availability: availability == "available" ? true : false
+            }
+            console.log(courseData)
+            if (ID == "") {
+                try {
+                    const docRef = await addDoc(collection(firestore, "Courses"), courseData);
+                    console.log("Document written with ID: ", docRef.id);
+                } catch (e) {
+                    console.error("Error adding document: ", e);
+                }
+            }
+            else {
+                await updateDoc(doc(firestore, 'Courses', ID), courseData);
+            }
+            clearCourse();
+        }
+
+        function clearCourse() {
+            $("#CrsId").val("");
+            $("#name").val("");
+            $("#mark").val(0);
+            $("#hours").val(0);
+            $("#exampleSelect1").val("available");
+
+        }
+
+        function ShowCourse(course) {
+            var CourseData = course.data();
+            var row = `<tr>
+                    <td>${course.id}</td>
+                    <td>${CourseData.Name}</td>
+                    <td>${CourseData.Mark}</td>
+                    <td>${CourseData.Hours}</td>
+                    <td>${CourseData.availability}</td>
+                    <td>
+                        <button type="button" class="btn btn-warning" onclick="fillCourse('${course.id}')">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
+  <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/>
+</svg>
+                        </button>
+                        <button type="button" class="btn btn-danger" onclick="deleteCourse('${course.id}')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+  <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+</svg>
+                        </button>
+                    </td>
+                </tr>`;
+            $("#allCourses>tbody").append(row);
+        }
+
+        window.fillCourse = fillCourse;
+        async function fillCourse(CId) {
+            const docSnapshot = await getDoc(doc(firestore, 'Courses', CId));
+            var Course = docSnapshot.data();
+            $("#CrsId").val(CId);
+            $("#name").val(Course.Name);
+            $("#mark").val(Course.Mark);
+            $("#hours").val(Course.Hours);
+            $("#exampleSelect1").val(Course.availability === true ? 'available' : "Not available");
+
+        }
+
+        window.deleteCourse = deleteCourse;
+        async function deleteCourse(CId) {
+            var sure = confirm("Are You Sure you want to delete that course?");
+            if (sure)
+                await deleteDoc(doc(firestore, 'Courses', CId));
+        }
+
+
+        window.TestQuery = TestQuery;
+        async function TestQuery() {
+            var selectedCourse = $("#Cname").val()
+            const q = query(collection(firestore, 'Courses'), where("Name", "==", selectedCourse), where("availability", "==", true)); //!=
+            const querySnapshot = await getDocs(q);
+
+            querySnapshot.forEach((course) => {
+                var CourseData = course.data();
+
+                console.log(CourseData)
+                var row = `<tr>
+                    <td>${course.id}</td>
+                    <td>${CourseData.Name}</td>
+                    <td>${CourseData.Mark}</td>
+                    <td>${CourseData.Hours}</td>
+                    <td>${CourseData.availability}</td> <tr>`
+                $("#myCourse>tbody").append(row);
+
+            });
+        }
+
+    </script>
+</body>
+
+</html>

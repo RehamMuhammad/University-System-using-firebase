@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty</title>
+    <link rel="stylesheet" href="./assets/bootstrap/css/bootstrap.css" />
+    <link rel="stylesheet" href="./assets/css/style.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+
+<body onload="showFaculities()">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand h1 mt-2 p-1" href="./index.html">Faculties</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01"
+                aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarColor01">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active h5 mt-2 p-1" href="./student.html">Students</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active h5 mt-2 p-1 ms-4" href="./courses.html">Courses</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="inputs container">
+        <div class="row">
+            <div class="col-12">
+                <input type="text" class="form-control mt-5" id="facultyName" placeholder="Please Enter Faculty name">
+                <input type="text" class="form-control mt-3" id="facultyAddress"
+                    placeholder="Please Enter Faculty address">
+                <button type="button" onclick="saveFaculty()" class="btn btn-success mt-3">Add Faculty</button>
+            </div>
+        </div>
+    </div>
+    <table class="table table-hover container" id="allFaculities">
+        <div class="row">>
+            <div class="col-12">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Faculty Name </th>
+                        <th scope="col">Faculty address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </div>
+        </div>
+    </table>
+    <script src="./assets/bootstrap/js/bootstrap.js"></script>
+    <script>
+        //Save new added Faculties to our faculties Collection
+        function saveFaculty() {
+            var facultyName = $("#facultyName").val();
+            var facultyAddress = $("#facultyAddress").val();
+            var facultyData = {
+                facultyName: facultyName,
+                facultyAddress: facultyAddress,
+            };
+            console.log(facultyData);
+            $.ajax({
+                url: "https://university-system-2017-default-rtdb.firebaseio.com/Faculties.json",
+                method: "POST",
+                data: JSON.stringify(facultyData),
+                contentType: "application/json; charset=UTF-8",
+                dataType: "json",
+                success: function () {
+                    showFaculities();
+
+                },
+                error: function (err) {
+                    alert(err);
+                },
+            });
+            clearFaculty();
+        }
+
+        //Clear input fields
+
+        function clearFaculty() {
+            $("#facultyName").val("");
+            $("#facultyAddress").val("");
+        }
+
+        //Show all Faculties in our faculties Collection
+        function showFaculities() {
+            $.ajax({
+                url: "https://university-system-2017-default-rtdb.firebaseio.com/Faculties.json",
+                method: "GET",
+                dataType: "json",
+                success: function (Fdata) {
+                    var allFaculities = $("#allFaculities>tbody");
+                    allFaculities.empty();
+                    for (let fac in Fdata) {
+                        var row = `<tr class="table-danger">
+                        <th scope="row">${fac}</th>
+                        <td>${Fdata[fac].facultyName}</td>
+                        <td>${Fdata[fac].facultyAddress}</td>
+                    </tr>`;
+                        allFaculities.append(row);
+                    }
+                },
+                error: function (err) {
+                    alert(err);
+                },
+            });
+        }
+    </script>
+</body>
+
+</html>

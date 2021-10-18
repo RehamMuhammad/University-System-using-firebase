@@ -1,2 +1,2 @@
 # Firebase-Project-Sample
-Simple University System Project with firebase.
+Simple University System Project with firebase & JQuery.
